@@ -147,10 +147,10 @@ bool JSBSimBridge::SetFdmConfigs(ConfigurationParser &cfg) {
     return true;
   }
 }
-
-bool JSBSimBridge::SetMavlinkInterfaceConfigs(std::unique_ptr<MavlinkInterface> &interface, TiXmlHandle &config) {
 bool JSBSimBridge::SetMavlinkInterfaceConfigs(std::unique_ptr<MavlinkInterface> &interface, ConfigurationParser &cfg) {
   TiXmlHandle config = *cfg.XmlHandle();
+  TiXmlElement *mavlink_configs = config.FirstChild("mavlink_interface").Element();
+
   if (!mavlink_configs) return true;  // Nothing to set
 
   int tcp_port = kDefaultSITLTcpPort;
