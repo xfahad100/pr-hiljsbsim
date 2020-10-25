@@ -53,8 +53,7 @@ JSBSimBridge::JSBSimBridge(JSBSim::FGFDMExec *fdmexec, ConfigurationParser &cfg)
 
   // Configure Mavlink HIL interface
   _mavlink_interface = std::make_unique<MavlinkInterface>();
-  SetMavlinkInterfaceConfigs(_mavlink_interface, config);
-
+   SetMavlinkInterfaceConfigs(_mavlink_interface, _cfg);
   _mavlink_interface->Load();
 
   // Instantiate sensors
@@ -150,17 +149,30 @@ bool JSBSimBridge::SetFdmConfigs(ConfigurationParser &cfg) {
 }
 
 bool JSBSimBridge::SetMavlinkInterfaceConfigs(std::unique_ptr<MavlinkInterface> &interface, TiXmlHandle &config) {
-  TiXmlElement *mavlink_configs = config.FirstChild("mavlink_interface").Element();
-
+bool JSBSimBridge::SetMavlinkInterfaceConfigs(std::unique_ptr<MavlinkInterface> &interface, ConfigurationParser &cfg) {
+  TiXmlHandle config = *cfg.XmlHandle();
   if (!mavlink_configs) return true;  // Nothing to set
 
   int tcp_port = kDefaultSITLTcpPort;
   GetConfigElement<int>(config, "mavlink_interface", "tcp_port", tcp_port);
+  int udp_port = kDefaultGCSPort;
+  GetConfigElement<int>(config, "mavlink_interface", "udp_port", udp_port);
   bool enable_lockstep = true;
   GetConfigElement(config, "mavlink_interface", "enable_lockstep", enable_lockstep);
+  interface->SetGcsUdpPort(udp_port);
 
-  interface->SetMavlinkTcpPort(tcp_port);
-  interface->SetUseTcp(true);
+  if (cfg.getSerialEnabled()) {
+      // Configure for HITL when serial is enabled
+      interface->SetSerialEnabled(cfg.getSerialEnabled());
+      interface->SetDevice(cfg.getDevice());
+      interface->SetBaudrate(cfg.getBaudrate());
+      interface->SetHILMode(true);
+      cout <<"hilmode is enabled"<<endl;
+  } else {
+    // Configure for SITL as default
+    interface->SetMavlinkTcpPort(tcp_port);
+    interface->SetUseTcp(true);
+  }
   interface->SetEnableLockstep(enable_lockstep);
 
   return true;
