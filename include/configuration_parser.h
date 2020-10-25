@@ -63,6 +63,9 @@ class ConfigurationParser {
   std::string getInitScriptPath() { return _init_script_path; }
   std::string getModelName() { return _model_name; }
   int getRealtimeFactor() { return _realtime_factor; }
+  bool getSerialEnabled() { return _serial_enabled; }
+  int getBaudrate() { return _baudrate; }
+  std::string getDevice() { return _device; }
   static void PrintHelpMessage(char *argv[]);
 
  private:
@@ -73,4 +76,8 @@ class ConfigurationParser {
   std::string _init_script_path;
   std::string _model_name;
   float _realtime_factor{1.0};
+    // HITL Configs
+  bool _serial_enabled{false};
+  std::string _device;
+  int _baudrate{921600};
 };
